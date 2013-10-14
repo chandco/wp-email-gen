@@ -1,0 +1,15 @@
+More info will come later!
+
+but here are my own development notes, a to do list if you will:
+
+- Register a Custom post type for newsletters
+- Add in a template for that custom post type.  This will define the newsletter style so the idea is this si something that would change from different installs.  This should probably be seperate from the plugin so that it becomes dependent on the theme - so the readme would define that it'll be something like 
+
+newsletter-single.php and 
+newsletter-archive.php
+
+
+- register custom fields for the post type
+- Add hooks so that the custom fields appear
+
+- create an interface to search for a post, and insert the copy into the custom fields.  It'll be a repeating custom field with settings.  Eg left / right / appearance order
