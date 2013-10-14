@@ -12,8 +12,13 @@
  
 // initialise and check authorisation
 /* include("../../../wp-load.php"); */
+
+
+// initialisation
 add_action( 'init', 'create_newsletter_post_type' );
+
 function create_newsletter_post_type() {
+	// groups newsletter stories
 	register_post_type( 'newsletter',
 		array(
 			'labels' => array(
@@ -26,6 +31,7 @@ function create_newsletter_post_type() {
 		'supports' => array( 'title', 'editor', 'thumbnail' )
 		)
 	);
+	// newsletter stories, each individual article
 	register_post_type( 'newsletterstory',
 		array(
 			'labels' => array(
@@ -35,7 +41,7 @@ function create_newsletter_post_type() {
 		'public' => true,
 		'has_archive' => false,
 		'rewrite' => array('slug' => 'newsletterstories'),
-		'supports' => array( 'title', 'editor', 'thumbnail' )
+		'supports' => array( 'title', 'editor', 'thumbnail', 'page-attributes' )
 		)
 	);
 	
@@ -45,11 +51,15 @@ function create_newsletter_post_type() {
 }
 
 
+//wp_enqueue_script('abc_shop_categories_widget_js', plugin_dir_url(__FILE__) . 'abc_shop_categories_widget.js', array('jquery', 'jquery-ui-core', 'jquery-ui-sortable'), '', true);
+		
+// add the javascript
 function wpen_load_js_file()
 {
 	
 		wp_enqueue_script('jquery');
-		wp_enqueue_script('wpen_the_js', plugins_url('javascript.js',__FILE__) );
+		wp_enqueue_script('wpen_the_js', plugins_url('javascript.js',__FILE__), array('jquery', 'jquery-ui-core', 'jquery-ui-sortable') );
+		
 		//wp_enqueue_script('vfe_the_js', 'javascript.js' );
 		
 		wp_localize_script( 
@@ -61,26 +71,121 @@ function wpen_load_js_file()
 	);
 		
 }
-
 add_action('admin_enqueue_scripts', 'wpen_load_js_file');
 
-function wpen_add_custom_box() {
-// NEED TO CHANGE TO NEWSLETTERS
-    $screens = array( 'newsletterstory' );
 
-    foreach ( $screens as $screen ) {
+
+// add the metaboxes to the admin for newsletter stories
+function wpen_add_custom_box() {
+
+    add_meta_box('wpen_list_stories_in_newsletter',
+	__('Here are the stories in this newsletter', 'wpen_textdomain'),
+	'wpen_list_stories_in_newsletter_box',
+	'newsletter'
+	);
 
         add_meta_box(
             'wpen_sectionid',
-            __( 'Export Venue to Venue Finder', 'wpen_textdomain' ),
+            __( 'Populate content from another blog post', 'wpen_textdomain' ),
             'wpen_inner_custom_box',
-            $screen
+            'newsletterstory'
         );
-    }
+		
+		add_meta_box(
+		'wpen_set_newsletter_parent',
+		__('Which newsletter is this a story of?', 'wpen_textdomain' ),
+		'wpen_inner_parent_box',
+		'newsletterstory'
+		);
+		
+		
+		
+   
 }
 add_action( 'add_meta_boxes', 'wpen_add_custom_box' );
 
 
+// newsletter box.  Will list the currently attached newsletters
+function wpen_list_stories_in_newsletter_box( $post ) {
+	
+	$args = array(
+	'posts_per_page' => -1,
+	'post_type' => 'newsletterstory',
+	'meta_query' =>	array(
+			'key' => '_newsletter_story_parent',
+			'value' => $post->ID
+		)
+	);
+	
+	$posts = get_posts($args);
+	echo '<style>
+  #wpen_sortable ul { list-style-type: none; margin: 0; padding: 0; width: 60%; }
+  #wpen_sortable ul li { margin: 0 3px 3px 3px; padding: 0.4em; padding-left: 1.5em; font-size: 1.4em; height: 18px; cursor:move; }
+  #wpen_sortable ul li span { position: absolute; margin-left: -1.3em; }
+  </style>';
+	echo '<div id="wpen_sortable"><ul >';
+	foreach ($posts as $blogpost)
+	{
+		echo '<li id="postid-' . $blogpost->post_id . '">' . $blogpost->post_title  . ' ( <a href="' . get_edit_post_link( $blogpost->ID ) . '">EDIT</a> ) </li>';
+	}
+	echo "</ul></div>";
+		
+}
+
+
+// this box will let you choose which newsletter it is a parent of
+// this will be saved as meta data
+function wpen_inner_parent_box ( $post ) {
+	
+		$args = array(
+	'posts_per_page' => -1,
+	'post_type' => 'newsletter'
+	);
+	
+	$posts = get_posts($args);
+	echo '<select name="newsletter_story_parent" id="newsletter_story_parent">';
+	
+	$parent_newsletter = get_post_meta($post->ID,"_newsletter_story_parent",true);
+	
+	foreach ($posts as $blogpost)
+	{
+		if ($parent_newsletter == $blogpost->ID) 
+		{
+			$selected = " selected";
+		} else {
+			$selected = "";
+		}
+		echo '<option value="' . $blogpost->ID . '"' . $selected . '>' . $blogpost->post_title  . '</option>\n';
+	}
+		
+	echo '</select>';	
+}
+
+
+// save the  field above
+
+function wpen_save_postdata($post_id){
+
+ if ( 'newsletterstory' != $_POST['post_type']) return; // don't want to do this if it's not the right post type
+     
+	
+	$blc = $_POST['newsletter_story_parent'];
+	echo $blc;
+      // save data in INVISIBLE custom field (note the "_" prefixing the custom fields' name
+      update_post_meta($post_id, '_newsletter_story_parent', $blc); 
+
+    }
+
+    //On post save, save plugin's data
+    add_action('save_post', 'wpen_save_postdata');
+
+
+
+
+
+// this box will find a blog post, and insert the content.  If there is no featured image already on this post, the featured image from 
+// that blog post will be set.  It's a quick way of adding stories.  The idea is that you edit down the copy from the blog post in such a 
+// way that you do not have to edit the original blog post, and editing a newsletter is quick.
 
 function wpen_inner_custom_box( $post ) {
 
@@ -88,7 +193,7 @@ echo '<div id="wpen_status"></div>';
 echo '<input type="hidden" id="wpen-current-post" value="' . $post->ID . '" />';
 echo '<select name="find-a-post" id="find-a-post">';
 
-echo '<option value="">Populate this with the content from another news story...</option>';
+echo '<option value="nothing">Populate this with the content from another news story...</option>';
 
 $args = array(
 'posts_per_page' => -1,
