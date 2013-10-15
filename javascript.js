@@ -52,7 +52,7 @@ jQuery ("button#populate_wpen").click(function(e) {
 				
 				}); // jquery post
 		
-			});// click populate_wpen
+	});// click populate_wpen
 	
 	
 
@@ -62,26 +62,39 @@ jQuery ("button#populate_wpen").click(function(e) {
 
 
 jQuery(document).ready(function() {
-    jQuery("#wpen_sortable ul").sortable({
-		axis: 'y',
-        cursor: 'move',
-		stop: function (event, ui) {
-			var data = jQuery(this).sortable('serialize');
-			data.action = "saveorder";
+    jQuery("#wpen_sortable ul").sortable(
+	
+		{
+			axis: 'y',
+			cursor: 'move',
+			stop: function (event, ui) {
+				data = {}
+				data.serialize = jQuery(this).sortable('serialize');
+				data.action = "saveorder";
+				console.log(data);
+				// data = item[]=1&item[]=2
+				jQuery("#wpen_status").html("saving order...");
+				jQuery.post(
 			
-			// data = item[]=1&item[]=2
-			jQuery.post(
-		
-				wpen.ajaxurl,
-		
-				data,
-		
-				function ( response ) {
-					
-					
-				}
-    });
+					wpen.ajaxurl,
+			
+					data,
+			
+					function ( response ) {
+						
+						if (response == "true")
+						{
+						// response will be string true or false
+							jQuery("#wpen_status").html("Saved new order").delay(800).html("");
+						} else {
+							jQuery("#wpen_status").html("ERROR! Problems saving order").delay(800).html("");
+						}
+					}
+					);
+				} // stop: function (event, ui)
+	}); // jQuery("#wpen_sortable ul").sortable(
 
     jQuery('#wpen_sortable ul').disableSelection();
     jQuery('#wpen_sortable li').disableSelection();
-});
+	
+	});

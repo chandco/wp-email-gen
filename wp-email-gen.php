@@ -79,7 +79,7 @@ add_action('admin_enqueue_scripts', 'wpen_load_js_file');
 function wpen_add_custom_box() {
 
     add_meta_box('wpen_list_stories_in_newsletter',
-	__('Here are the stories in this newsletter', 'wpen_textdomain'),
+	__('Here are the stories in this newsletter.  Drag them around to change the order that they appear in.  Click on edit to edit that story.  Search for stories in the Newsletter Stories section to add more stories to this newsletter.', 'wpen_textdomain'),
 	'wpen_list_stories_in_newsletter_box',
 	'newsletter'
 	);
@@ -114,7 +114,10 @@ function wpen_list_stories_in_newsletter_box( $post ) {
 	'meta_query' =>	array(
 			'key' => '_newsletter_story_parent',
 			'value' => $post->ID
-		)
+		),
+	'orderby' => 'menu_order',
+	'order' => 'ASC'
+	
 	);
 	
 	$posts = get_posts($args);
@@ -123,10 +126,10 @@ function wpen_list_stories_in_newsletter_box( $post ) {
   #wpen_sortable ul li { margin: 0 3px 3px 3px; padding: 0.4em; padding-left: 1.5em; font-size: 1.4em; height: 18px; cursor:move; }
   #wpen_sortable ul li span { position: absolute; margin-left: -1.3em; }
   </style>';
-	echo '<div id="wpen_sortable"><ul >';
+	echo '<div id="wpen_status"></div><div id="wpen_sortable"><ul >';
 	foreach ($posts as $blogpost)
 	{
-		echo '<li id="postid-' . $blogpost->post_id . '">' . $blogpost->post_title  . ' ( <a href="' . get_edit_post_link( $blogpost->ID ) . '">EDIT</a> ) </li>';
+		echo '<li id="postid-' . $blogpost->ID . '">' . $blogpost->post_title  . ' ( <a href="' . get_edit_post_link( $blogpost->ID ) . '">EDIT</a> ) </li>';
 	}
 	echo "</ul></div>";
 		
