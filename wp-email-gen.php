@@ -98,12 +98,29 @@ function wpen_add_custom_box() {
 		'newsletterstory'
 		);
 		
+		add_meta_box(
+		'wpen_set_newsletter_ctalink',
+		__('What is the main CTA link for this story?', 'wpen_textdomain' ),
+		'wpen_set_newsletter_ctalink_box',
+		'newsletterstory'
+		);
+		
 		
 		
    
 }
 add_action( 'add_meta_boxes', 'wpen_add_custom_box' );
 
+
+
+function wpen_set_newsletter_ctalink_box( $post ) {
+	
+	$ctalink = get_post_meta($post->ID,"_newsletter_story_cta_link",true);
+	$ctatext = get_post_meta($post->ID,"_newsletter_story_cta_text",true);
+	echo '<label for="wpen_cta_link">Link:</label> <input type="text" name="wpen_cta_link" id="wpen_cta_link" value="' . $ctalink . '"/>';
+	echo '<label for="wpen_cta_link">Text:</label> <input type="text" name="wpen_cta_text" id="wpen_cta_text" value="' . $ctatext . '" />';
+	
+}
 
 // newsletter box.  Will list the currently attached newsletters
 function wpen_list_stories_in_newsletter_box( $post ) {
@@ -173,9 +190,15 @@ function wpen_save_postdata($post_id){
      
 	
 	$blc = $_POST['newsletter_story_parent'];
+	
+	$cta_link = $_POST["wpen_cta_link"];
+	$cta_text = $_POST["wpen_cta_text"];
 	echo $blc;
       // save data in INVISIBLE custom field (note the "_" prefixing the custom fields' name
       update_post_meta($post_id, '_newsletter_story_parent', $blc); 
+	  update_post_meta($post_id, '_newsletter_story_cta_link', $cta_link); 
+	  update_post_meta($post_id, '_newsletter_story_cta_text', $cta_text); 
+	  
 
     }
 

@@ -40,6 +40,8 @@ case "loadpost":
 	  ## DO WE WANT TO JUST SET THE POST DATA HERE AND REFRESH TO AVOID JS ISSUES?
 	$return["post_title"] = $post->post_title;
 		$return["post_content"] = $post->post_content;  
+		$return["cta_link"] = get_permalink($post->ID);
+		$return["cta_text"] = "Read More...";
 		
 		## set up the data in JSON so javascipt can read it
 $returnJSON = json_encode($return);

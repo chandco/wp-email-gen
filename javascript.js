@@ -43,6 +43,8 @@ jQuery ("button#populate_wpen").click(function(e) {
 				
 				jQuery("input#title").val(obj.post_title);
 				jQuery("textarea#content").val(obj.post_content);
+				jQuery("input#wpen_cta_link").val(obj.cta_link);
+				jQuery("input#wpen_cta_text").val(obj.cta_text);
 				jQuery("#wpen_status").html(obj.addedthumbnail);
 				
 				jQuery(this).html("Add this blog post's content");
