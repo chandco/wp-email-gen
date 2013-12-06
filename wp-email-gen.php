@@ -3,7 +3,7 @@
 /**
  * Plugin Name: WP Email Newsletter Generator
  * Plugin URI: http://itavenues.co.uk
- * Description: Uses content from Posts to populate info in a custom post type "newsletter"
+ * Description: Uses content from Posts to populate info in a custom post type "newsletter".  REQUIRES 
  * Version: 0.1
  * Author: Nathan Edwards
  * Author URI: mailto:nathan.edwards@chandco.net
@@ -13,6 +13,36 @@
 // initialise and check authorisation
 /* include("../../../wp-load.php"); */
 
+// add the email theme to the template.
+
+//Template fallback
+add_action("template_redirect", 'itanl_theme_redirect');
+
+function itanl_theme_redirect() {
+    global $wp;
+    $plugindir = dirname( __FILE__ );
+
+    //A Specific Custom Post Type
+    if ($wp->query_vars["post_type"] == 'newsletter') {
+        $templatefilename = 'single-newsletter.php';
+        if (file_exists(TEMPLATEPATH . '/' . $templatefilename)) {
+            $return_template = TEMPLATEPATH . '/' . $templatefilename;
+        } else {
+            $return_template = $plugindir . '/' . $templatefilename;
+        }
+        itanl_do_theme_redirect($return_template);
+    }
+}
+
+function itanl_do_theme_redirect($url) {
+    global $post, $wp_query;
+    if (have_posts()) {
+        include($url);
+        die();
+    } else {
+        $wp_query->is_404 = true;
+    }
+}
 
 // initialisation
 add_action( 'init', 'create_newsletter_post_type' );
@@ -45,7 +75,7 @@ function create_newsletter_post_type() {
 		)
 	);
 	
-	
+	add_theme_support( 'post-thumbnails' );
 
 	
 }
@@ -117,8 +147,11 @@ function wpen_set_newsletter_ctalink_box( $post ) {
 	
 	$ctalink = get_post_meta($post->ID,"_newsletter_story_cta_link",true);
 	$ctatext = get_post_meta($post->ID,"_newsletter_story_cta_text",true);
+	$imgcaption = get_post_meta($post->ID,"_newsletter_story_imgcaption",true);
 	echo '<label for="wpen_cta_link">Link:</label> <input type="text" name="wpen_cta_link" id="wpen_cta_link" value="' . $ctalink . '"/>';
 	echo '<label for="wpen_cta_link">Text:</label> <input type="text" name="wpen_cta_text" id="wpen_cta_text" value="' . $ctatext . '" />';
+	echo '<label for="wpen_img_caption">Image caption:</label> <input type="text" name="wpen_img_caption" id="wpen_img_caption" value="' . $imgcaption . '"/>';
+
 	
 }
 
@@ -191,6 +224,8 @@ function wpen_save_postdata($post_id){
 	
 	$blc = $_POST['newsletter_story_parent'];
 	
+	$imgcaption = $_POST["wpen_img_caption"];
+
 	$cta_link = $_POST["wpen_cta_link"];
 	$cta_text = $_POST["wpen_cta_text"];
 	echo $blc;
@@ -198,6 +233,7 @@ function wpen_save_postdata($post_id){
       update_post_meta($post_id, '_newsletter_story_parent', $blc); 
 	  update_post_meta($post_id, '_newsletter_story_cta_link', $cta_link); 
 	  update_post_meta($post_id, '_newsletter_story_cta_text', $cta_text); 
+	  update_post_meta($post_id, '_newsletter_story_imgcaption', $imgcaption); 
 	  
 
     }
